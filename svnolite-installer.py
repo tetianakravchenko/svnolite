@@ -8,7 +8,7 @@ import datetime
 ####TODO: check if pysvn is installed
 
 home_svn_dir="/home/svn"
-home_svnolite_dir="/home/svn/svnolite"
+home_svnolite_dir="/home/svn/svnolite_dir"
 work_dir="/home/svn/bin"
 home_dir_ssh="/home/svn/.ssh"
 repo_home="/home/svn/repositories"
@@ -43,7 +43,7 @@ def create_svn_admin():
 def post_commit():
 	with open(repo_home+'/svn-admin/hooks/post-commit','w+') as f:
 		f.write('#!/bin/bash \n')
-		f.write('python /home/svn/svnolite/svnolite-installer.py >> /home/svn/svnolite/svnolite.log')
+		f.write('python ' + home_svnolite_dir+'/svnolite-installer.py >> ' + home_svnolite_dir+'/svnolite.log')
 	os.chmod(repo_home+'/svn-admin/hooks/post-commit', 0755)
 
 def current_time():
