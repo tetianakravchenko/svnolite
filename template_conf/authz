@@ -1,0 +1,17 @@
+[aliases]
+# joe = /C=XZ/ST=Dessert/L=Snake City/O=Snake Oil, Ltd./OU=Research Institute/CN=Joe Average
+
+[groups]
+# harry_and_sally = harry,sally
+# harry_sally_and_joe = harry,sally,&joe
+
+[svn-admin:/]
+svn = rw
+# [/foo/bar]
+# harry = rw
+# &joe = r
+# * =
+
+# [repository:/baz/fuz]
+# @harry_and_sally = rw
+# * = r

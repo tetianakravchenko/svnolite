@@ -4,7 +4,9 @@ import subprocess
 import shutil
 import pysvn
 import ConfigParser
-import datetime
+import datetime 
+import logging
+import logging.handlers
 ####TODO: check if pysvn is installed
 
 home_svn_dir="/home/svn"
@@ -16,6 +18,13 @@ repo_home="/home/svn/repositories"
 client = pysvn.Client()
 client.commit_info_style = 1
 
+#logging.basicConfig(filename=home_svnolite_dir+'/svnolite.log',level=logging.DEBUG)
+logger = logging.getLogger('logger_for_svnolite.log')
+logger.setLevel(logging.DEBUG)
+handler = logging.handlers.RotatingFileHandler(filename=home_svnolite_dir+'/svnolite.log', maxBytes=1024, backupCount=5)
+#formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+#handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 def custimize_svn_admin():
 	url = "file://"+repo_home+"/svn-admin"
@@ -35,7 +44,7 @@ def create_svn_admin():
         (output, err) = p.communicate()
 	custimize_svn_admin()
 	copy_configs(home_svnolite_dir+"/template_conf/", home_svn_dir+"/")
-	print current_time()+" svn-admin repository created and customized"
+	logger.info(current_time()+" svn-admin repository created and customized")
 	if not os.path.exists(repo_home+'/svn-admin/hooks/post-commit'):
 		post_commit()
 	#print "Revision is", output
@@ -43,7 +52,7 @@ def create_svn_admin():
 def post_commit():
 	with open(repo_home+'/svn-admin/hooks/post-commit','w+') as f:
 		f.write('#!/bin/bash \n')
-		f.write('python ' + home_svnolite_dir+'/svnolite-installer.py >> ' + home_svnolite_dir+'/svnolite.log')
+		f.write('logger -t [svnolite: ] `python ' + home_svnolite_dir+'/svnolite-installer.py`')
 	os.chmod(repo_home+'/svn-admin/hooks/post-commit', 0755)
 
 def current_time():
@@ -52,29 +61,29 @@ def current_time():
 def svn_admin_update():
 	os.chdir(work_dir)
 	current_rev_num_WC = client.info(work_dir).get("revision").number	
-	print "WC revision number: "+str(current_rev_num_WC)
+	logger.info("WC revision number: "+str(current_rev_num_WC))
 	#revision = pysvn.Revision(pysvn.opt_revision_kind.number, current_rev_num_WC)
 	#print revision
 	current_rev_num = client.revpropget("revision", "file:///home/svn/repositories/svn-admin")[0].number
-	print "Current revision number: "+str(current_rev_num)
+	logger.info("Current revision number: "+str(current_rev_num))
 	if current_rev_num_WC < current_rev_num:
-		print "Now will be executed 'svn update'"
+		logger.info("Now will be executed 'svn update'")
 		client.update(work_dir, recurse=True)
-		print current_time()+" svn-admin repository was updated"
+		logger.info(current_time()+" svn-admin repository was updated")
 		if check_if_modified(current_rev_num):
 			for i in check_if_modified(current_rev_num):
 				if i.split('/')[1] == 'keys':
 					authorize_key_gen()
 				elif i.split('/')[2] == 'authz':
 					modified_authz()	
-					print "Authz was modified"
+					logger.info("'Authz' file was modified")
 				elif i.split('/')[2] == 'svnserve.conf':
-					print "'Conf' was changed"
+					logger.info("'svnserve.conf' was changed")
 					modified_conf_svnserve()
 				else:
-					print "Error: strange modification"
+					logger.info("Error: strange modification")
 		else:
-			print "No changes there."				
+			logger.info("No changes there.")				
 	
 def check_if_modified(revision_number):	
 	revision = pysvn.Revision(pysvn.opt_revision_kind.number, revision_number)
@@ -89,7 +98,7 @@ def check_if_modified(revision_number):
         			diff_paths.append(str(unicode(j['path'])))
         #print  diff_paths
 	if diff_paths == []:
-		print "There is no changes"
+		logger.info("There is no changes")
 		return False
 	else:
 		return diff_paths
@@ -104,19 +113,19 @@ def modified_conf_svnserve():
         	parser = ConfigParser.SafeConfigParser()
         	parser.read(work_dir+"/conf/svnserve.conf")
 	except ConfigParser.ParsingError, err:
-                print 'Could not parse:', err
+                logger.error('Could not parse: ', err)
 
 	if parser.sections() != valid_value.keys():
-        	print "Name of section: [general] was changed or section was deleted"
+        	logger.warn("Name of section: [general] was changed or section was deleted")
 	else:  
         	if parser.options('general') != valid_value['general'].keys():
-                	print "You add/delete or modified standard options! Must be: 'anon-access', 'auth-access'and 'authz-db'"
+                	logger.warn("You add/delete or modified standard options! Must be: 'anon-access', 'auth-access'and 'authz-db'")
         	else:  
                 	for i in parser.options('general'):
                         	if not re.match(valid_value['general'][i],parser.get('general',i)):
-                                	print "Error: Bad value in {0}. Accept values: 'anon-access':'write|read|none', 'auth-access':'write|read|none', 'authz-db': filename".format(i.upper())
+                                	logger.error("Bad value in {0}. Accept values: 'anon-access':'write|read|none', 'auth-access':'write|read|none', 'authz-db': filename".format(i.upper()))
                 	if not os.path.exists(parser.get('general','authz-db')):
-                        	print "File {0} dont exist!".format(parser.get('general','authz-db'))
+                        	logger.warn("File {0} dont exist!".format(parser.get('general','authz-db')))
 	shutil.copy(work_dir+"/conf/svnserve.conf", home_svn_dir)
  
 def modified_authz():
@@ -124,16 +133,16 @@ def modified_authz():
 	for i in [re.findall('^[^#].+:.*$',line) for line in open(work_dir+"/conf/authz")]:
 		if i != []:
 			order_list.append(i[0])
-	print order_list
+	logger.info('Changes occured in file:', order_list)
 	for i in range(0, len(order_list)):
 		order_list[i] = re.sub('["["]','', order_list[i]).split(":")[0] 
 				
 	order_list = list(set(order_list))
         for i in order_list:
 		if testURL("file://"+repo_home+"/"+i):
-			print "Repo " + i + " exist."
+			logger.info("Repository " + i + " exist.")
 		else:
-			print "Repository {0} don`t exist. {0} will be created".format(i)
+			logger.info("Repository {0} don`t exist. {0} will be created".format(i))
 			os.chdir(repo_home)
 			p = subprocess.Popen("svnadmin create "+i, stdout=subprocess.PIPE, shell=True)
         		(output, err) = p.communicate() 
@@ -146,7 +155,7 @@ def testURL(url):
         	return True
 	except pysvn.ClientError, ce:
         	if ('Unable to open repository' in ce.args[0]) or ('Host not found' in ce.args[0]):
-			print "Repo dont exist"
+			#logging.info("Repo dont exist")
             		return False
         	else:
             		raise ce
@@ -157,7 +166,7 @@ def authorize_key_gen():
         if os.path.exists(home_dir_ssh+"/authorized_keys"):
                 open(home_dir_ssh+"/authorized_keys", 'w').close()
         else:
-                print "Sorry, but file authorized_keys is not found. This file will be created"
+                logger.info("Sorry, but file authorized_keys is not found. This file will be created")
                 open(home_dir_ssh+"/authorized_keys", 'a').close()
 
         keys_list = [f for f in os.listdir(work_dir+"/keys") if not f.startswith('.')]
