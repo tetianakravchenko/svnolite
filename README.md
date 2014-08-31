@@ -5,13 +5,11 @@ svnolite
 First, prepare:
 
 *   create new user "svn" with home directory "/home/svn"
-*   install python-svn, git
-*   login to "svn" on the server
-*   make sure `~/.ssh/authorized_keys` not content information that you need (this file will be rewrited)
+*   install python-svn(for RHEL-based distributions - pysvn), git
+*   login as user "svn" on the server
 
 Next, install svnolite by running these commands:
     
-    mkdir $HOME/svnolite-dir
     git clone git://github.com/ins0mia/svnolite
     cp -r $HOME/svnolite $HOME/svnolite-dir
     cd $HOME/svnolite-dir

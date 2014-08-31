@@ -10,7 +10,7 @@ import logging.handlers
 ####TODO: check if pysvn is installed
 
 home_svn_dir=str(os.path.split(os.getcwd())[0])
-home_svnolite_dir=home_svn_dir+"/svnolite_dir"
+home_svnolite_dir=home_svn_dir+"/svnolite-dir"
 work_dir=home_svn_dir+"/bin"
 home_dir_ssh=home_svn_dir+"/.ssh"
 repo_home=home_svn_dir+"/repositories"
