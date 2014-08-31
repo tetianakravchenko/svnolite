@@ -9,19 +9,25 @@ import logging
 import logging.handlers
 ####TODO: check if pysvn is installed
 
-home_svn_dir="/home/svn"
-home_svnolite_dir="/home/svn/svnolite_dir"
-work_dir="/home/svn/bin"
-home_dir_ssh="/home/svn/.ssh"
-repo_home="/home/svn/repositories"
+home_svn_dir=str(os.path.split(os.getcwd())[0])
+home_svnolite_dir=home_svn_dir+"/svnolite_dir"
+work_dir=home_svn_dir+"/bin"
+home_dir_ssh=home_svn_dir+"/.ssh"
+repo_home=home_svn_dir+"/repositories"
+
+# filesize in MB
+log_file_rotate_size=10
 
 client = pysvn.Client()
 client.commit_info_style = 1
 
+if not os.path.exists(home_svnolite_dir+'/svnolite.log'):
+	open(home_svnolite_dir+'/svnolite.log', 'a').close()
+
 #logging.basicConfig(filename=home_svnolite_dir+'/svnolite.log',level=logging.DEBUG)
 logger = logging.getLogger('logger_for_svnolite.log')
 logger.setLevel(logging.DEBUG)
-handler = logging.handlers.RotatingFileHandler(filename=home_svnolite_dir+'/svnolite.log', maxBytes=1024, backupCount=5)
+handler = logging.handlers.RotatingFileHandler(filename=home_svnolite_dir+'/svnolite.log', maxBytes=log_file_rotate_size*1024, backupCount=5)
 #formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 #handler.setFormatter(formatter)
 logger.addHandler(handler)
