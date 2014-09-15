@@ -7,7 +7,16 @@ import ConfigParser
 import datetime 
 import logging
 import logging.handlers
+import sys, getopt
 ####TODO: check if pysvn is installed
+####TODO: set correct umask(750)		check
+####TODO: post-commit - in svnolite.log		check
+####TODO: change name to svnolite.py		+
+###TODO: del path "home/svn" in 2 place		+
+###TODO: create dir .ssh if not exist		+
+###TODO: 3 mode: install + admin key + in authz give permisions; post-commit; reset admin key
+###TODO: help (modes + link to github)
+###TODO: fix adding keys after commit
 
 home_svn_dir=str(os.path.split(os.getcwd())[0])
 home_svnolite_dir=home_svn_dir+"/svnolite-dir"
@@ -58,7 +67,7 @@ def create_svn_admin():
 def post_commit():
 	with open(repo_home+'/svn-admin/hooks/post-commit','w+') as f:
 		f.write('#!/bin/bash \n')
-		f.write('logger -t [svnolite: ] `python ' + home_svnolite_dir+'/svnolite-installer.py`')
+		f.write('logger -t [svnolite: ] -f ' + home_svnolite_dir+'/svnolite.log ' + '`python ' + os.path.realpath(__file__))
 	os.chmod(repo_home+'/svn-admin/hooks/post-commit', 0755)
 
 def current_time():
@@ -70,7 +79,7 @@ def svn_admin_update():
 	logger.info("WC revision number: "+str(current_rev_num_WC))
 	#revision = pysvn.Revision(pysvn.opt_revision_kind.number, current_rev_num_WC)
 	#print revision
-	current_rev_num = client.revpropget("revision", "file:///home/svn/repositories/svn-admin")[0].number
+	current_rev_num = client.revpropget("revision", "file://"+repo_home+"/svn-admin")[0].number
 	logger.info("Current revision number: "+str(current_rev_num))
 	if current_rev_num_WC < current_rev_num:
 		logger.info("Now will be executed 'svn update'")
@@ -168,6 +177,7 @@ def testURL(url):
 	
 ##TODO: arg to input: in if i.split('/')[2].split('.')[0]
 def authorize_key_gen():
+	dir_if_not_exist_create(home_svn_dir+"/.ssh")
 	os.chdir(work_dir)
         if os.path.exists(home_dir_ssh+"/authorized_keys"):
                 open(home_dir_ssh+"/authorized_keys", 'w').close()
@@ -187,7 +197,7 @@ def authorize_key_gen():
 
 def dir_if_not_exist_create(directory):
 	if not os.path.exists(directory):
-               	os.makedirs(directory)
+               	os.makedirs(directory, 0750)
 
 def copy_configs(src, dst):
 	for i in [f for f in os.listdir(src)]:
@@ -213,4 +223,4 @@ def copy_configs(src, dst):
 if not os.path.exists(repo_home+"/svn-admin"):
 	create_svn_admin()
 else:
-	svn_admin_update()
+	f_not_exist_createsvn_admin_update()
