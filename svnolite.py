@@ -18,14 +18,11 @@ import sys, getopt
 ###TODO: help (modes + link to github)
 ###TODO: fix adding keys after commit
 
-home_svn_dir=str(os.path.split(os.getcwd())[0])
-#home_svn_dir=home_svn_dir1
-home_svnolite_dir=home_svn_dir+"/svnolite-dir"
-work_dir=home_svn_dir+"/bin"
-home_dir_ssh=home_svn_dir+"/.ssh"
-repo_home=home_svn_dir+"/repositories"
-
-print home_svn_dir
+home_svn_dir=os.path.split(os.path.dirname(__file__))[0]
+home_svnolite_dir=os.path.dirname(__file__)
+work_dir=os.path.join(home_svn_dir, u'bin')
+home_dir_ssh=os.path.join(home_svn_dir, u'.ssh')
+repo_home=os.path.join(home_svn_dir, u'repositories')
 
 # filesize in MB
 log_file_rotate_size=10
@@ -72,8 +69,8 @@ def post_commit():
 	current_path = os.path.realpath(__file__)	
 	with open(repo_home+'/svn-admin/hooks/post-commit','w+') as f:
 		f.write('#!/bin/bash \n')
-		f.write('logger -t [svnolite: ] -f ' + home_svnolite_dir+'/svnolite.log ' + '`python ' + home_svnolite_dir + '/svnolite.py -u `')
-		#f.write('python ' +home_svnolite_dir+ '/svnolite.py -u')
+		#f.write('logger -t [svnolite: ] -f ' + home_svnolite_dir+'/svnolite.log ' + '`python ' + home_svnolite_dir + '/svnolite.py -u `')
+		f.write('python ' +home_svnolite_dir+ '/svnolite.py -u')
 		#f.write('`python ' + os.path.realpath(__file__)+' -u ` >> '+home_svnolite_dir+'/svnolite.log ')
 	os.chmod(repo_home+'/svn-admin/hooks/post-commit', 0755)
 	logger.info('File post-commit was created!')
@@ -244,9 +241,6 @@ def main(argv):
 			sys.exit()
 		elif opt in ("-i", "--install"):
 			#print "installation . . ."
-			home_svn_dir1=str(os.path.split(os.getcwd())[0])
-			#global home_svn_dir
-			home_svn_dir=home_svn_dir1
 			create_svn_admin()	
 		elif opt in ("-u", "--update"):
 			#print "updating"
