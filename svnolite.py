@@ -12,7 +12,7 @@ import sys, getopt
 ####TODO: set correct umask(750)		check
 ####TODO: post-commit - in svnolite.log		check
 ####TODO: change name to svnolite.py		+
-###TODO: del path "home/svn" in 2 place		
+###TODO: del path "home/svn" in 2 place		+	
 ###TODO: create dir .ssh if not exist		+
 ###TODO: 3 mode: install + admin key + in authz give permisions; post-commit; reset admin key
 ###TODO: help (modes + link to github)
@@ -182,7 +182,7 @@ def testURL(url):
 	
 ##TODO: arg to input: in if i.split('/')[2].split('.')[0]
 def authorize_key_gen(path_to_file):
-	dir_if_not_exist_create(home_svn_dir+"/.ssh")
+	dir_if_not_exist_create(home_dir_ssh)
 	os.chdir(work_dir)
         if os.path.exists(home_dir_ssh+"/authorized_keys"):
                 open(home_dir_ssh+"/authorized_keys", 'w').close()
@@ -247,12 +247,13 @@ def main(argv):
 			svn_admin_update()
 		elif opt in ("-k", "--key"):
 			authorize_key_gen(arg)
-			f = open(home_svn_dir+'/authz', 'r')
-			liles=f.readlines()
-			lines[lines.index('[svn-admin:/]\n')+1] = os.path.basename(path).split(".")[0]+ ' = rw' + '\n'
-			f = open(home_svn_dir+'/authz', 'w')
+			f = open(os.path.join(work_dir, u'conf/authz'), 'r')
+			lines=f.readlines()
+			lines.insert(lines.index('[svn-admin:/]\n')+1 , os.path.basename(arg).split(".")[0]+ ' = rw' + '\n')
+			f = open(os.path.join(work_dir, u'conf/authz'), 'w')
 			f.writelines(lines)
 			f.close()
+			client.checkin(os.path.join(work_dir, u'conf/authz'), "template_config", recurse = True)	
 			
 			#with open (home_svn_dir+'/authz','w+') as f:
 			#	f.write('')
