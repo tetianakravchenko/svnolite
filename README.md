@@ -5,7 +5,7 @@ svnolite
 First, prepare:
 
 *   create new user "svn" with home directory "/home/svn"
-*   install python-svn(for RHEL-based distributions - pysvn), git
+*   install python-svn(for RHEL-based distributions - pysvn), git, subversion
 *   login as user "svn" on the server
 
 Next, install svnolite by running these commands:
@@ -13,7 +13,7 @@ Next, install svnolite by running these commands:
     * git clone git://github.com/ins0mia/svnolite
     * cp -r $HOME/svnolite $HOME/svnolite-dir
     * cd $HOME/svnolite-dir
-    * python $HOME/svnolite.py -i [-k </path/to/admin/key.pub>]
+    * python $HOME/svnolite-dir/svnolite.py -i [-k </path/to/admin/key.pub>]
 
 P.S. Attention!! It's important to use Full path here!
 P.P.S. Afrer this step must be created: /home/svn/repositories/svn-admin; /home/svn/bin (with work copy); files: /home/svn/authz, /home/svn/svnserve.conf
