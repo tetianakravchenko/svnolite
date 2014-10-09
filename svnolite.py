@@ -254,7 +254,7 @@ def main(argv):
 			f.writelines(lines)
 			f.close()
 			client.checkin(os.path.join(work_dir, u'conf/authz'), "template_config", recurse = True)	
-			
+			shutil.copy(work_dir+"/conf/authz", home_svn_dir)			
 			#with open (home_svn_dir+'/authz','w+') as f:
 			#	f.write('')
 			#os.path.basename(arg).split(".")[0]			
