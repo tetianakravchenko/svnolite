@@ -206,7 +206,7 @@ def authorize_key_gen(ssh_keys):
 			keys.close()
 	elif type(ssh_keys) is str:
 		keys = open(ssh_keys, 'r')
-        	authozile_file.write('command="svnserve -t -r {0} --config-file={1} --tunnel-user={2}",no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty '.format(repo_home, home_svn_dir+'/svnserve.conf', os.path.basename(path_to_file).split(".")[0]) + keys.read())
+        	authozile_file.write('command="svnserve -t -r {0} --config-file={1} --tunnel-user={2}",no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty '.format(repo_home, home_svn_dir+'/svnserve.conf', os.path.basename(ssh_keys).split(".")[0]) + keys.read())
         	keys.close()
 	else:
 		logger.error("ERROR! Strange type of authorize_key_gen function argument! Check! It`s not list and not string")
