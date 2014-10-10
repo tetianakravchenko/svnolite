@@ -93,7 +93,11 @@ def svn_admin_update():
 		if check_if_modified(current_rev_num):
 			for i in check_if_modified(current_rev_num):
 				if i.split('/')[1] == 'keys':
-					authorize_key_gen(work_dir+"/keys/"+i.split('/')[2])
+					#authorize_key_gen(work_dir+"/keys/"+i.split('/')[2])
+					#authorize_key_gen([f for f in os.listdir(work_dir+"/keys") if not f.startswith('.')])
+					list_of_keys = [f for f in os.listdir(work_dir+"/keys") if not f.startswith('.')]
+					list_of_keys.append(i.split('/')[2])
+					authorize_key_gen(list(set(list_of_keys)))
 				elif i.split('/')[2] == 'authz':
 					modified_authz()	
 					logger.info("'Authz' file was modified")
@@ -180,8 +184,10 @@ def testURL(url):
         	else:
             		raise ce
 	
+#def rewrite_authorize_keys()
+
 ##TODO: arg to input: in if i.split('/')[2].split('.')[0]
-def authorize_key_gen(path_to_file):
+def authorize_key_gen(ssh_keys):
 	dir_if_not_exist_create(home_dir_ssh)
 	os.chdir(work_dir)
         if os.path.exists(home_dir_ssh+"/authorized_keys"):
@@ -192,13 +198,18 @@ def authorize_key_gen(path_to_file):
 
         #keys_list = [f for f in os.listdir(work_dir+"/keys") if not f.startswith('.')]
         authozile_file = open (home_dir_ssh+"/authorized_keys", 'w+')
-
-        #for i in keys_list:
-        #	keys = open(work_dir+"/keys/"+i, 'r')
-        #	authozile_file.write('command="svnserve -t -r {0} --config-file=/home/svn/svnserve.conf --tunnel-user={1}",no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty '.format(repo_home, i.split(".")[0]) + keys.read())
-        keys = open(path_to_file, 'r')
-        authozile_file.write('command="svnserve -t -r {0} --config-file={1} --tunnel-user={2}",no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty '.format(repo_home, home_svn_dir+'/svnserve.conf', os.path.basename(path_to_file).split(".")[0]) + keys.read())
-        keys.close()    
+	if type(ssh_keys) is list:
+		logger.info("All keys in keys/ directory: "+str(ssh_keys))
+		for i in ssh_keys:
+        		keys = open(work_dir+"/keys/"+i, 'r')
+        		authozile_file.write('command="svnserve -t -r {0} --config-file={1} --tunnel-user={2}",no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty '.format(repo_home, home_svn_dir+'svnserve.conf', i.split(".")[0]) + keys.read())
+			keys.close()
+	elif type(ssh_keys) is str:
+		keys = open(ssh_keys, 'r')
+        	authozile_file.write('command="svnserve -t -r {0} --config-file={1} --tunnel-user={2}",no-port-forwarding,no-agent-forwarding,no-X11-forwarding,no-pty '.format(repo_home, home_svn_dir+'/svnserve.conf', os.path.basename(path_to_file).split(".")[0]) + keys.read())
+        	keys.close()
+	else:
+		logger.error("ERROR! Strange type of authorize_key_gen function argument! Check! It`s not list and not string")
 
         authozile_file.close()
 
@@ -254,11 +265,8 @@ def main(argv):
 			f.writelines(lines)
 			f.close()
 			client.checkin(os.path.join(work_dir, u'conf/authz'), "template_config", recurse = True)	
-			shutil.copy(work_dir+"/conf/authz", home_svn_dir)			
-			#with open (home_svn_dir+'/authz','w+') as f:
-			#	f.write('')
-			#os.path.basename(arg).split(".")[0]			
-
+			shutil.copy(work_dir+"/conf/authz", home_svn_dir)
+				
 if not len(sys.argv) > 1:
 	print "Enter some arguments! Usage: svnolite.py [-i] [-u] [-k </path/to/admin/key>] [-h]"
 	sys.exit()
