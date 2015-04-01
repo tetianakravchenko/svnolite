@@ -264,7 +264,9 @@ def main(argv):
 			f = open(os.path.join(work_dir, u'conf/authz'), 'w')
 			f.writelines(lines)
 			f.close()
-			client.checkin(os.path.join(work_dir, u'conf/authz'), "template_config", recurse = True)	
+			shutil.copy(arg, os.path.join(work_dir, u'keys/'))
+			client.add(os.path.join(work_dir, u'keys/')+arg.split('/')[-1], recurse=True)
+			client.checkin([os.path.join(work_dir, u'conf/authz'), os.path.join(work_dir,u'keys')], "template_config", recurse = True)	
 			shutil.copy(work_dir+"/conf/authz", home_svn_dir)
 				
 if not len(sys.argv) > 1:
